@@ -1,0 +1,133 @@
+﻿@model ItransitionTask5.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div>
+
+    @await Component.InvokeAsync("MessagesList")
+
+    @await Component.InvokeAsync("MessageView")
+
+    @await Component.InvokeAsync("SendMessage", Model.NamesContext)
+</div>
+
+<script>
+    var socket;
+    var messagesData = [];
+    var toast = document.getElementById("toast");
+    
+    window.onload = () => {
+        establishSocketConnection();
+    }
+    
+    var onMessageSelect = () => {
+        hideList(true);
+        hideWatch(false);
+        
+    }
+        
+    var openMessagesList = () => {
+        hideList(false);
+        hideWatch(true);
+        hideSend(true);
+    }
+        
+    var openSendMessage = () => {
+        hideList(true);
+        hideWatch(true);
+        hideSend(false);
+    }
+    
+    function getList() {
+        return document.getElementById("MessagesListView");
+    }
+    function getWatch() {
+        return document.getElementById("MessageView");
+    }
+    function getSend() {
+        return document.getElementById("SendMessageView");
+    }
+    
+    function hideWatch(hide) {
+        getWatch().hidden = hide;
+    }
+    function hideList(hide) {
+        getList().hidden = hide;
+    }
+    function hideSend(hide) {
+        getSend().hidden = hide;
+    }
+    
+    function establishSocketConnection(){
+        console.log("Establishing connection");
+        socket = new WebSocket("@Model.HostUrl");
+        socket.addEventListener("open", function onSocketMessage(event)
+        {
+            console.log("Connection opened");
+            sendData("@Model.Name");
+        });
+        socket.addEventListener("close", function onSocketMessage(event)
+        {
+            console.log("Connection cloase");
+        });
+        socket.addEventListener("error", function onSocketMessage(event)
+        {
+            console.error('Error! ', event.data);
+        });
+        socket.addEventListener("message", function onSocketMessage(event)
+        {
+            console.log('Message from server ', event.data);
+            if (event.data.toString().includes("Id")) {
+                addMessageToList(event.data);
+            }
+        });
+    }
+    
+    function sendData(data) {
+        console.log("Sending data", JSON.stringify(data));
+        socket.send(JSON.stringify(data));
+    }
+    
+    function addMessageToList(stringData) {
+        var data = JSON.parse(stringData);
+        messagesData.push(data);
+        var content = document.getElementById("MessagesListContent");
+        var prefab = document.getElementById("prefab");
+        var clone = prefab.cloneNode(true);
+        clone.hidden = false;
+        var i = messagesData.length - 1;
+        clone.addEventListener('click', function(){
+                 showMessage(i);
+             });
+        clone.removeAttribute("id");
+        content.insertBefore(clone, content.firstChild);
+        var title = clone.querySelector(".mb-1");
+        title.innerText = data.Title;
+        var time = clone.querySelector(".time");
+        if (data.DateTime == null)
+            data.DateTime = new Date().toString();
+        time.innerText = getCurrentDateTimeDifference(new Date(data.DateTime));
+        var fromto = clone.querySelector(".fromto");
+        fromto.innerText = "From " + data.From + " to " + data.To;
+    }
+    
+    function getCurrentDateTimeDifference(dateTime) {
+        var m1 = new Date().getTime();
+        var m2 = dateTime.getTime();
+        var diff = m1 - m2;
+        var ans = "";
+        var days = Math.floor(diff / 86400000);
+        if (days!=0)
+            ans += days + " days ";
+        diff-=days * 86400000;
+        var hours = Math.floor(diff / 3600000);
+        if (hours!=0)
+            ans += hours + " hours ";
+        diff-=hours * 3600000;
+        var minutes = Math.floor(diff / 60000);
+        ans += minutes + " minutes ago";
+        return ans;
+    }
+</script>
