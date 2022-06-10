@@ -1,0 +1,31 @@
+<div id="MessageView" class="" hidden="hidden">
+    <div>
+        <button class="btn-danger rounded" onclick="openMessagesList()">Back</button>
+    </div>
+    <br/>
+    <div class="d-flex w-100 justify-content-between">
+        <h5 id="messageViewTitle" class="mb-1">List group item heading</h5>
+        <small id="messageViewTime">3 days ago</small>
+    </div>
+    <small id="messageViewFromto"></small>
+    <p id="messageViewText"></p>
+</div>
+
+<script>
+    title = document.getElementById("messageViewTitle");
+    text = document.getElementById("messageViewText");
+    time = document.getElementById("messageViewTime");
+    fromto = document.getElementById("messageViewFromto");
+    function showMessage(i) {
+        title.innerText = messagesData[i].Title;
+        var div = document.createElement( 'div' );
+        div.innerHTML = marked.parse(messagesData[i].Text);
+        try{
+        text.removeChild(text.firstChild);
+        } catch {}
+        text.appendChild(div);
+        time.innerText = messagesData[i].DateTime;
+        fromto.innerText = "From " + messagesData[i].From + " To " + messagesData[i].To;
+        onMessageSelect();
+    }
+</script>

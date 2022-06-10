@@ -1,0 +1,107 @@
+@model ItransitionTask5.ViewModels.SendMessageViewModel
+
+<div id="SendMessageView" class="" hidden="hidden">
+    <h2>Send message</h2>
+    <div>
+        <button class="btn-danger rounded" onclick="openMessagesList()">Back</button>
+        <button class="btn-primary rounded" onclick="sendMessage()">Send</button>
+    </div>
+    <br/>
+    <form>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Title</span>
+            </div>
+            <input name="Title" type="text" class="form-control" placeholder="Type title here" aria-label="Title"
+                   aria-describedby="basic-addon1">
+        </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Message</span>
+            </div>
+            <textarea name="Text" class="form-control" aria-label="Message" 
+placeholder="Type your message here"></textarea>
+        </div>
+        <h3>Recipients</h3>
+        <div id="recipientsParent" class="list-group">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">Recipient</span>
+                </div>
+                <input list="namesList" name="To" type="text" class="form-control" placeholder="Type recipient name"
+                       aria-label="Recipient"
+                       aria-describedby="basic-addon1">
+            </div>
+            <datalist id="namesList">
+                @foreach (NameModel nameModel in Model.PossibleNames)
+                {
+                    <option>@nameModel.Name</option>
+                }
+            </datalist>
+        </div>
+    </form>
+
+    <div>
+        <button class="btn-light rounded" onclick="addRecipient()">Add recipient</button>
+        <button class="btn-light rounded" onclick="removeRecipient()">Remove recipient</button>
+    </div>
+</div>
+
+<script>
+    var recipientCount = 1;
+    var id = 0;
+    function addRecipient() {
+        let element = document.createElement('div')
+        element.class="input-group mb-3";
+        element.innerHTML = "<div class='input-group mb-3'>" +
+                            "<div class='input-group-prepend'>" +
+                            "<span class='input-group-text' id='basic-addon1'>Recipient</span>" +
+                            "</div>" +
+                            "<input list='namesList' name='To' type='text' class='form-control' placeholder='Type recipient name'" +
+                            "aria-label='Recipient'" +
+                            "aria-describedby='basic-addon1'>" +
+                            "</div>"
+        document.getElementById('recipientsParent').appendChild(element);
+    }
+    function removeRecipient() {
+        var element = document.getElementById("recipientsParent");
+        if (element.childNodes.length>2)
+            element.removeChild(element.lastChild);
+    }
+    
+    function sendMessage() {
+        var recipients = [];
+        for (var element of document.getElementsByName("To"))
+            recipients.push(element.value);
+        let data = {
+            Title: document.getElementsByName("Title")[0].value,
+            Text: document.getElementsByName("Text")[0].value,
+            From: "@Model.Name",
+            To: recipients
+        }
+        var recipientsFilled = true;
+        for (let res of recipients)
+            if (res == "")
+                {
+                    recipientsFilled = false;
+                    break;
+                }
+        if (!data.From || !recipientsFilled || !data.Text || !data.Title)
+            alert("You leaved some fields empty!");
+        else
+        {
+            sendData(data);
+            openMessagesList();
+            for (var recipient of recipients)
+            {
+                let msgData = {
+                Title: document.getElementsByName("Title")[0].value,
+                Text: document.getElementsByName("Text")[0].value,
+                From: "@Model.Name",
+                To: recipient
+                }
+                addMessageToList(JSON.stringify(msgData));
+            }
+        }
+    }
+</script>
