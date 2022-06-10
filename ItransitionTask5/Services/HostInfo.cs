@@ -6,9 +6,6 @@ public class HostInfo : IHostInfo
     
     public string GetHostUrl()
     {
-        #if DEBUG
-        return "ws://localhost:5157/Home/";
-        #endif
         return hostUrl;
     }
 }
